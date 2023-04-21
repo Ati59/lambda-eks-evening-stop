@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  lambda-eks-evening-stop
+
+  SAM Template for lambda-eks-evening-stop
+
+Globals:
+  Function:
+    Timeout: 30
+
+Resources:
+  LambdaEksEveningStop:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src.app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Policies:
+        - Statement:
+          - Sid: ReadEksClusters
+            Effect: Allow
+            Action:
+              - eks:ListClusters
+              - eks:ListNodegroups
+              - eks:DescribeCluster
+              - eks:DescribeNodegroup
+              - eks:UpdateNodegroupConfig
+            Resource: "*"
+      Events:
+        EveryDay:
+          Type: Schedule
+          Properties:
+            Name: LambdaEksEveningStop
+            Description: Scale down all cluster that has the tag soloio:autoscaledown set to true.
+            Schedule: "cron(0 21 * * ? *)"
+            Enabled: true
